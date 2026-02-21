@@ -119,6 +119,14 @@ var HelmCharts = []HelmChart{
 		Version:         "4.10.0",
 	},
 	{
+		ChartPath:       "bunkerweb",
+		CreateNamespace: true,
+		Namespace:       "bunkerweb",
+		ReleaseName:     "bunkerweb",
+		RepoURL:         "https://repo.bunkerweb.io/charts",
+		Version:         "1.0.13",
+	},
+	{
 		ChartPath:       "keda",
 		CreateNamespace: true,
 		Namespace:       "keda",
@@ -161,6 +169,10 @@ var HelmRepositories = []HelmRepository{
 	{
 		Name: "traefik",
 		URL:  "https://helm.traefik.io/traefik",
+	},
+	{
+		Name: "bunkerweb",
+		URL:  "https://repo.bunkerweb.io/charts",
 	},
 }
 

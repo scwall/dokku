@@ -1,0 +1,12 @@
+settings:
+  kubernetes:
+    # Ensure the controller watches the same IngressClass Dokku uses
+    ingressClass: "bunkerweb"
+    # Watch all namespaces (default). Leave empty to allow cluster-wide handling
+    namespaces: ""
+
+# Explicitly ensure an IngressClass named "bunkerweb" exists and is used
+ingressClass:
+  enabled: true
+  name: "bunkerweb"
+  controller: "bunkerweb.io/ingress-controller"

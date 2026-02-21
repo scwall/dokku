@@ -73,6 +73,51 @@ Dokku can also use Traefik on cluster initialization via the [Traefik's CRDs](ht
 dokku scheduler-k3s:initialize --ingress-class traefik
 ```
 
+Dokku can also use [BunkerWeb](https://www.bunkerweb.io/) as the ingress controller. To initialize the cluster with BunkerWeb:
+
+```shell
+dokku scheduler-k3s:initialize --ingress-class bunkerweb
+```
+
+When `bunkerweb` is selected, Dokku installs the BunkerWeb Helm chart and does not install `ingress-nginx` or `traefik`. Generated Ingress resources will use `spec.ingressClassName: bunkerweb`.
+
+### BunkerWeb Ingress
+
+Per-app BunkerWeb behavior is configured via Ingress annotations using the `scheduler-k3s:annotations:set` command. Be sure to target the `ingress` resource type.
+
+- Enable automatic Let's Encrypt on an app:
+
+```shell
+dokku scheduler-k3s:annotations:set <app> bunkerweb.io/AUTO_LETS_ENCRYPT yes --resource-type ingress
+```
+
+- Enable ModSecurity (WAF) for an app:
+
+```shell
+dokku scheduler-k3s:annotations:set <app> bunkerweb.io/USE_MODSECURITY yes --resource-type ingress
+```
+
+- Basic rate limiting (10 requests/second on all paths):
+
+```shell
+dokku scheduler-k3s:annotations:set <app> bunkerweb.io/USE_LIMIT_REQ yes --resource-type ingress
+# Limit to 10 requests per second
+dokku scheduler-k3s:annotations:set <app> bunkerweb.io/LIMIT_REQ_RATE 10r/s --resource-type ingress
+# Apply to all paths
+dokku scheduler-k3s:annotations:set <app> bunkerweb.io/LIMIT_REQ_URL / --resource-type ingress
+```
+
+- Whitelist IPs (allow only specific client IPs/CIDRs):
+
+```shell
+dokku scheduler-k3s:annotations:set <app> bunkerweb.io/USE_WHITELIST yes --resource-type ingress
+dokku scheduler-k3s:annotations:set <app> bunkerweb.io/WHITELIST_IP "203.0.113.10 198.51.100.0/24" --resource-type ingress
+```
+
+Notes:
+- Annotation keys are parsed by the BunkerWeb controller; refer to the BunkerWeb documentation for the full list of supported keys and values.
+- Existing Dokku `nginx:*` plugin settings are not translated to BunkerWeb annotations; continue using Ingress annotations for per-app overrides when using BunkerWeb.
+
 ### Adding nodes to the cluster
 
 > [!WARNING]

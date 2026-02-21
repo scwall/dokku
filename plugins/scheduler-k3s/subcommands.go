@@ -148,7 +148,7 @@ func CommandAutoscalingAuthReport(appName string, format string, global bool, in
 
 // CommandInitialize initializes a k3s cluster on the local server
 func CommandInitialize(ingressClass string, serverIP string, taintScheduling bool) error {
-	if ingressClass != "nginx" && ingressClass != "traefik" {
+	if ingressClass != "nginx" && ingressClass != "traefik" && ingressClass != "bunkerweb" {
 		return fmt.Errorf("Invalid ingress-class: %s", ingressClass)
 	}
 
@@ -312,7 +312,7 @@ func CommandInitialize(ingressClass string, serverIP string, taintScheduling boo
 	}
 
 	common.CommandPropertySet("scheduler-k3s", "--global", "ingress-class", ingressClass, DefaultProperties, GlobalProperties)
-	if ingressClass == "nginx" {
+	if ingressClass != "traefik" {
 		args = append(args, "--disable", "traefik")
 	}
 
@@ -375,11 +375,15 @@ func CommandInitialize(ingressClass string, serverIP string, taintScheduling boo
 
 	common.LogInfo2Quiet("Installing helm charts")
 	err = installHelmCharts(ctx, clientset, func(chart HelmChart) bool {
-		if chart.ChartPath == "traefik" && ingressClass == "nginx" {
+		if chart.ChartPath == "traefik" && ingressClass != "traefik" {
 			return false
 		}
 
-		if chart.ChartPath == "ingress-nginx" && ingressClass == "traefik" {
+		if chart.ChartPath == "ingress-nginx" && ingressClass != "nginx" {
+			return false
+		}
+
+		if chart.ChartPath == "bunkerweb" && ingressClass != "bunkerweb" {
 			return false
 		}
 
@@ -926,12 +930,17 @@ func CommandEnsureCharts(forceInstall bool, forceChartNames []string) error {
 	common.LogInfo2Quiet("Installing helm charts")
 	err = installHelmCharts(ctx, clientset, func(chart HelmChart) bool {
 		common.LogInfo1(fmt.Sprintf("Processing chart %s@%s", chart.ReleaseName, chart.Version))
-		if chart.ChartPath == "traefik" && ingressClass == "nginx" {
+		if chart.ChartPath == "traefik" && ingressClass != "traefik" {
 			common.LogVerbose("Skipping chart due to ingress-class mismatch")
 			return false
 		}
 
-		if chart.ChartPath == "ingress-nginx" && ingressClass == "traefik" {
+		if chart.ChartPath == "ingress-nginx" && ingressClass != "nginx" {
+			common.LogVerbose("Skipping chart due to ingress-class mismatch")
+			return false
+		}
+
+		if chart.ChartPath == "bunkerweb" && ingressClass != "bunkerweb" {
 			common.LogVerbose("Skipping chart due to ingress-class mismatch")
 			return false
 		}

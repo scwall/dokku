@@ -10,7 +10,7 @@
 {{- $routeToKeda = true }}
 {{- end }}
 {{- end }}
-{{- if and $config.web.domains (eq $.Values.global.network.ingress_class "nginx") }}
+{{- if and $config.web.domains (or (eq $.Values.global.network.ingress_class "nginx") (eq $.Values.global.network.ingress_class "bunkerweb")) }}
 {{- range $pdx, $domain := $config.web.domains }}
 ---
 apiVersion: networking.k8s.io/v1
@@ -33,7 +33,7 @@ metadata:
   name: {{ $.Values.global.app_name }}-{{ $processName }}-{{ $domain.slug }}
   namespace: {{ $.Values.global.namespace }}
 spec:
-  ingressClassName: nginx
+  ingressClassName: {{ $.Values.global.network.ingress_class }}
   {{- if $config.web.tls.enabled }}
   tls:
     - hosts:
